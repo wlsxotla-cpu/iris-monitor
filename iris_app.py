@@ -122,7 +122,7 @@ def fetch_detail(session, item):
     except Exception:
         pass
 
-@st.cache_data(ttl=600, show_spinner=False)
+@st.cache_data(ttl=86400, show_spinner=False)
 def fetch_all(ministry_vals, tab_keys):
     session = requests.Session()
     session.get(TARGET_URL, headers={
