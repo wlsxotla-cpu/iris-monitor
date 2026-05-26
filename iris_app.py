@@ -16,16 +16,40 @@ TARGET_URL = f"{BASE_URL}/contents/retrieveBsnsAncmBtinSituListView.do"
 VIEW_URL   = f"{BASE_URL}/contents/retrieveBsnsAncmView.do"
 
 ALL_MINISTRIES = {
+    "범부처":             ("AR4999", "#455a64"),
     "과학기술정보통신부": ("AR4001", "#1a6fc4"),
     "산업통상부":         ("AR4002", "#c45c1a"),
     "중소벤처기업부":     ("AR4003", "#1a9e52"),
     "국토교통부":         ("AR4004", "#7b1fa2"),
     "교육부":             ("AR4005", "#00796b"),
-    "보건복지부":         ("AR4009", "#c62828"),
-    "산림청":             ("AR4013", "#558b2f"),
+    "기상청":             ("AR4006", "#0288d1"),
+    "농림축산식품부":     ("AR4007", "#558b2f"),
+    "농촌진흥청":         ("AR4008", "#33691e"),
+    "국가유산청":         ("AR4009", "#6d4c41"),
+    "문화체육관광부":     ("AR4010", "#ad1457"),
+    "방위사업청":         ("AR4011", "#37474f"),
+    "보건복지부":         ("AR4012", "#c62828"),
+    "산림청":             ("AR4013", "#2e7d32"),
+    "식품의약품안전처":   ("AR4014", "#ef6c00"),
+    "원자력안전위원회":   ("AR4015", "#4527a0"),
     "해양수산부":         ("AR4016", "#0277bd"),
-    "소방청":             ("AR4024", "#d84315"),
-    "범부처":             ("AR4999", "#455a64"),
+    "행정안전부":         ("AR4017", "#00695c"),
+    "기후에너지환경부":   ("AR4018", "#1b5e20"),
+    "우주항공청":         ("AR4019", "#1a237e"),
+    "방송미디어통신위원회":("AR4021", "#880e4f"),
+    "법무부":             ("AR4902", "#4e342e"),
+    "국방부":             ("AR4903", "#263238"),
+    "고용노동부":         ("AR4904", "#e65100"),
+    "경찰청":             ("AR4908", "#1565c0"),
+    "재정경제부":         ("AR4911", "#4a148c"),
+    "소방청":             ("AR4915", "#b71c1c"),
+    "해양경찰청":         ("AR4916", "#01579b"),
+    "관세청":             ("AR4930", "#827717"),
+    "조달청":             ("AR4932", "#33691e"),
+    "질병관리청":         ("AR4933", "#880e4f"),
+    "개인정보보호위원회": ("AR4981", "#4527a0"),
+    "국민안전처":         ("AR4986", "#bf360c"),
+    "대통령경호처":       ("AR4988", "#212121"),
 }
 
 TABS = {"접수예정": "ancmPre", "접수중": "ancmIng"}
@@ -127,7 +151,7 @@ def fetch_detail(session, item):
     except Exception:
         pass
 
-@st.cache_data(ttl=1800, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def fetch_all(ministry_vals, tab_keys):
     session = requests.Session()
     session.get(TARGET_URL, headers={
@@ -176,6 +200,7 @@ st.markdown("""
 .period-box {
     background: #fff8e1; border-left: 3px solid #ffa000;
     padding: 6px 10px; border-radius: 4px; margin: 6px 0; font-size: 13px;
+    color: #333 !important;
 }
 .new-badge {
     background: #ff5252; color: white; font-size: 11px;
