@@ -16,40 +16,16 @@ TARGET_URL = f"{BASE_URL}/contents/retrieveBsnsAncmBtinSituListView.do"
 VIEW_URL   = f"{BASE_URL}/contents/retrieveBsnsAncmView.do"
 
 ALL_MINISTRIES = {
-    "범부처":             ("AR4999", "#455a64"),
     "과학기술정보통신부": ("AR4001", "#1a6fc4"),
     "산업통상부":         ("AR4002", "#c45c1a"),
     "중소벤처기업부":     ("AR4003", "#1a9e52"),
     "국토교통부":         ("AR4004", "#7b1fa2"),
     "교육부":             ("AR4005", "#00796b"),
-    "기상청":             ("AR4006", "#0288d1"),
-    "농림축산식품부":     ("AR4007", "#558b2f"),
-    "농촌진흥청":         ("AR4008", "#33691e"),
-    "국가유산청":         ("AR4009", "#6d4c41"),
-    "문화체육관광부":     ("AR4010", "#ad1457"),
-    "방위사업청":         ("AR4011", "#37474f"),
     "보건복지부":         ("AR4012", "#c62828"),
     "산림청":             ("AR4013", "#2e7d32"),
-    "식품의약품안전처":   ("AR4014", "#ef6c00"),
-    "원자력안전위원회":   ("AR4015", "#4527a0"),
     "해양수산부":         ("AR4016", "#0277bd"),
-    "행정안전부":         ("AR4017", "#00695c"),
-    "기후에너지환경부":   ("AR4018", "#1b5e20"),
-    "우주항공청":         ("AR4019", "#1a237e"),
-    "방송미디어통신위원회":("AR4021", "#880e4f"),
-    "법무부":             ("AR4902", "#4e342e"),
-    "국방부":             ("AR4903", "#263238"),
-    "고용노동부":         ("AR4904", "#e65100"),
-    "경찰청":             ("AR4908", "#1565c0"),
-    "재정경제부":         ("AR4911", "#4a148c"),
     "소방청":             ("AR4915", "#b71c1c"),
-    "해양경찰청":         ("AR4916", "#01579b"),
-    "관세청":             ("AR4930", "#827717"),
-    "조달청":             ("AR4932", "#33691e"),
-    "질병관리청":         ("AR4933", "#880e4f"),
-    "개인정보보호위원회": ("AR4981", "#4527a0"),
-    "국민안전처":         ("AR4986", "#bf360c"),
-    "대통령경호처":       ("AR4988", "#212121"),
+    "범부처":             ("AR4999", "#455a64"),
 }
 
 TABS = {"접수예정": "ancmPre", "접수중": "ancmIng"}
@@ -63,7 +39,6 @@ HEADERS = {
     "Origin": "https://www.iris.go.kr",
 }
 
-# ── 수집 함수 ──────────────────────────────────────────────────
 def fetch_list_page(session, tab_arg, ministry_val, page_index):
     payload = [
         ("bizSearch",""),("bsnsTl",""),("ancmPrg",tab_arg),
@@ -175,14 +150,12 @@ def fetch_all(ministry_vals, tab_keys):
                 else:
                     break
 
-    # 중복 제거
     seen_uid, unique = set(), []
     for r in all_results:
         if r["id"] not in seen_uid:
             seen_uid.add(r["id"])
             unique.append(r)
 
-    # 상세 수집
     for item in unique:
         fetch_detail(session, item)
         time.sleep(0.15)
@@ -194,27 +167,22 @@ st.set_page_config(page_title="IRIS 사업공고 모니터링", page_icon="📋"
 
 st.markdown("""
 <style>
+.period-box {
+    background: #fff8e1; border-left: 3px solid #ffa000;
+    padding: 6px 10px; border-radius: 4px; margin: 6px 0;
+    font-size: 13px; color: #333 !important;
+}
 .ministry-header {
     padding: 10px 16px; border-radius: 8px 8px 0 0;
     color: white; font-size: 16px; font-weight: 700;
     display: flex; justify-content: space-between; align-items: center;
     margin-top: 16px;
 }
-.period-box {
-    background: #fff8e1; border-left: 3px solid #ffa000;
-    padding: 6px 10px; border-radius: 4px; margin: 6px 0; font-size: 13px;
-    color: #333 !important;
-}
-.new-badge {
-    background: #ff5252; color: white; font-size: 11px;
-    padding: 2px 8px; border-radius: 10px; margin-left: 6px; font-weight: 700;
-}
 </style>
 """, unsafe_allow_html=True)
 
 st.title("📋 IRIS 사업공고 모니터링")
 
-# ── 사이드바 ───────────────────────────────────────────────────
 with st.sidebar:
     st.header("⚙️ 설정")
 
@@ -239,7 +207,6 @@ with st.sidebar:
 
     st.caption(f"마지막 조회: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
 
-# ── 수집 및 표시 ───────────────────────────────────────────────
 if not selected_names:
     st.info("왼쪽에서 부처를 선택해주세요.")
     st.stop()
@@ -248,19 +215,17 @@ if not tab_options:
     st.info("조회할 탭을 선택해주세요.")
     st.stop()
 
-selected_vals = [ALL_MINISTRIES[n][0] for n in selected_names]
-tab_args      = [TABS[t] for t in tab_options]
+selected_vals = tuple(ALL_MINISTRIES[n][0] for n in selected_names)
+tab_args      = tuple(TABS[t] for t in tab_options)
 
 with st.spinner("🔄 IRIS 공고 수집 중..."):
-    results = fetch_all(tuple(selected_vals), tuple(tab_args))
+    results = fetch_all(selected_vals, tab_args)
 
-# 신규 기준: 오늘로부터 N일 이내
-cutoff = (datetime.now() - timedelta(days=new_days)).strftime("%Y-%m-%d")
-new_items = [a for a in results if a.get("announce_date", "") >= cutoff]
+cutoff    = (datetime.now() - timedelta(days=new_days)).strftime("%Y-%m-%d")
+new_items = [a for a in results if a.get("announce_date","") >= cutoff]
 
 st.success(f"총 {len(results)}건 | 최근 {new_days}일 신규 {len(new_items)}건")
 
-# 탭: 신규 / 전체
 tab_new, tab_all = st.tabs([
     f"🆕 신규 ({len(new_items)}건)",
     f"📋 전체 ({len(results)}건)"
@@ -279,7 +244,7 @@ def render_items(items):
         if ministry not in groups:
             continue
         mitems = groups[ministry]
-        color  = ALL_MINISTRIES.get(ministry, ("", "#777"))[1]
+        color  = ALL_MINISTRIES.get(ministry, ("","#777"))[1]
 
         st.markdown(f"""
         <div class="ministry-header" style="background:{color}">
@@ -302,8 +267,7 @@ def render_items(items):
                 for i, item in enumerate(tab_items):
                     with cols[i % 3]:
                         is_new = item.get("announce_date","") >= cutoff
-                        new_tag = "🆕 " if is_new else ""
-                        st.markdown(f"**{new_tag}{item['title']}**")
+                        st.markdown(f"**{'🆕 ' if is_new else ''}{item['title']}**")
                         st.caption(f"📋 {item['announce_num']}")
                         st.caption(f"🏢 {item['agency']}")
 
@@ -312,18 +276,16 @@ def render_items(items):
                         elif item.get("announce_date"):
                             st.markdown(f'<div class="period-box">📅 공고일: <b>{item["announce_date"]}</b></div>', unsafe_allow_html=True)
 
-                        if item.get("attachments"):
-                            ann_id  = item.get("ann_id","")
-                            tab_arg = "ancmIng" if item["status"]=="접수중" else "ancmPre"
-                            url     = f"{BASE_URL}/contents/retrieveBsnsAncmView.do?ancmId={ann_id}&ancmPrg={tab_arg}"
-                            for att in item["attachments"]:
-                                st.markdown(f"📎 [{att['name']}]({url})")
-                        else:
-                            st.caption("첨부파일 없음")
-
                         ann_id  = item.get("ann_id","")
                         tab_arg = "ancmIng" if item["status"]=="접수중" else "ancmPre"
                         iris_url = f"{BASE_URL}/contents/retrieveBsnsAncmView.do?ancmId={ann_id}&ancmPrg={tab_arg}"
+
+                        if item.get("attachments"):
+                            for att in item["attachments"]:
+                                st.markdown(f"📎 [{att['name']}]({iris_url})")
+                        else:
+                            st.caption("첨부파일 없음")
+
                         st.markdown(f"[🔗 IRIS에서 보기]({iris_url})")
                         st.divider()
 
