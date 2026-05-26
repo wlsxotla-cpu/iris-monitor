@@ -1,8 +1,5 @@
 """
-IRIS 사업공고 모니터링 - Streamlit 앱
-- IRIS에서 직접 파싱
-- 날짜 기준으로 신규 표시 (오늘 기준 N일 이내)
-- seen 파일 불필요
+IRIS 사업공고 모니터링 - Streamlit 앱 (안정 버전)
 """
 import streamlit as st
 import requests
@@ -10,7 +7,6 @@ from bs4 import BeautifulSoup
 import re, time
 from datetime import datetime, timedelta
 
-# ── 설정 ──────────────────────────────────────────────────────
 BASE_URL   = "https://www.iris.go.kr"
 TARGET_URL = f"{BASE_URL}/contents/retrieveBsnsAncmBtinSituListView.do"
 VIEW_URL   = f"{BASE_URL}/contents/retrieveBsnsAncmView.do"
@@ -126,16 +122,14 @@ def fetch_detail(session, item):
     except Exception:
         pass
 
-@st.cache_data(ttl=1800, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def fetch_all(ministry_vals, tab_keys):
     session = requests.Session()
-    try:
-        session.get(TARGET_URL, headers={
-            "User-Agent": HEADERS["User-Agent"],
-            "Accept": HEADERS["Accept"]
-        }, timeout=15)
-    except Exception:
-        pass
+    session.get(TARGET_URL, headers={
+        "User-Agent": HEADERS["User-Agent"],
+        "Accept": HEADERS["Accept"],
+        "Accept-Language": HEADERS["Accept-Language"],
+    }, timeout=30)
 
     all_results = []
     for tab_arg in tab_keys:
@@ -162,7 +156,7 @@ def fetch_all(ministry_vals, tab_keys):
 
     return unique
 
-# ── Streamlit UI ───────────────────────────────────────────────
+# ── UI ────────────────────────────────────────────────────────
 st.set_page_config(page_title="IRIS 사업공고 모니터링", page_icon="📋", layout="wide")
 
 st.markdown("""
@@ -276,8 +270,8 @@ def render_items(items):
                         elif item.get("announce_date"):
                             st.markdown(f'<div class="period-box">📅 공고일: <b>{item["announce_date"]}</b></div>', unsafe_allow_html=True)
 
-                        ann_id  = item.get("ann_id","")
-                        tab_arg = "ancmIng" if item["status"]=="접수중" else "ancmPre"
+                        ann_id   = item.get("ann_id","")
+                        tab_arg  = "ancmIng" if item["status"]=="접수중" else "ancmPre"
                         iris_url = f"{BASE_URL}/contents/retrieveBsnsAncmView.do?ancmId={ann_id}&ancmPrg={tab_arg}"
 
                         if item.get("attachments"):
