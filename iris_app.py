@@ -151,13 +151,16 @@ def fetch_detail(session, item):
     except Exception:
         pass
 
-@st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=1800, show_spinner=False)
 def fetch_all(ministry_vals, tab_keys):
     session = requests.Session()
-    session.get(TARGET_URL, headers={
-        "User-Agent": HEADERS["User-Agent"],
-        "Accept": HEADERS["Accept"]
-    }, timeout=30)
+    try:
+        session.get(TARGET_URL, headers={
+            "User-Agent": HEADERS["User-Agent"],
+            "Accept": HEADERS["Accept"]
+        }, timeout=15)
+    except Exception:
+        pass
 
     all_results = []
     for tab_arg in tab_keys:
